@@ -2,6 +2,7 @@ class ReactiveEffect {
   private _fn: any;
   private active = true;
   deps = [];
+  onStop: any;
 
   constructor(fn, public scheduler?) {
     this._fn = fn;
@@ -17,6 +18,10 @@ class ReactiveEffect {
   stop() {
     if (this.active) {
       cleanupEffect(this);
+
+      // execute onStop callback
+      this.onStop && this.onStop();
+
       this.active = false;
     }
   }
@@ -51,6 +56,8 @@ export function track(target, key) {
     depMaps.set(key, dep);
   }
 
+  if (!activeEffect) return;
+
   // 依赖收集 -- 将当前激活的 fn 加入到 dep 中
   dep.add(activeEffect);
   // 反向收集 effect 给 dep
@@ -76,8 +83,8 @@ export function trigger(target, key) {
 
 let activeEffect; // 标记当前激活的 ReactiveEffect 对象
 export function effect(fn, options: any = {}) {
-  const scheduler = options.scheduler;
-  const _effect = new ReactiveEffect(fn, scheduler);
+  const _effect = new ReactiveEffect(fn, options.scheduler);
+  _effect.onStop = options.onStop;
 
   _effect.run();
 

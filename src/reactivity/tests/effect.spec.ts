@@ -96,4 +96,20 @@ describe('effect', () => {
     runner();
     expect(dummy).toBe(3);
   });
+
+  it('onStop', () => {
+    const onStop = jest.fn();
+    const foo = reactive({ bar: 1 });
+    let dummy;
+
+    const runner = effect(
+      () => {
+        dummy = foo.bar;
+      },
+      { onStop }
+    );
+
+    stop(runner);
+    expect(onStop).toHaveBeenCalledTimes(1);
+  });
 });
