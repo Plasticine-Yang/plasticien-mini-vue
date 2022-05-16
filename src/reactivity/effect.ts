@@ -1,5 +1,7 @@
 class ReactiveEffect {
   private _fn: any;
+  private active = true;
+  deps = [];
 
   constructor(fn, public scheduler?) {
     this._fn = fn;
@@ -11,6 +13,21 @@ class ReactiveEffect {
     // return value of _fn
     return this._fn();
   }
+
+  stop() {
+    if (this.active) {
+      cleanupEffect(this);
+      this.active = false;
+    }
+  }
+}
+
+/**
+ * @description 清空 deps -- deps 可以在依赖收集的时候反向收集进来
+ * @param effect ReactiveEffect 对象
+ */
+function cleanupEffect(effect) {
+  effect.deps.forEach((dep: any) => dep.delete(effect));
 }
 
 /**
@@ -36,6 +53,8 @@ export function track(target, key) {
 
   // 依赖收集 -- 将当前激活的 fn 加入到 dep 中
   dep.add(activeEffect);
+  // 反向收集 effect 给 dep
+  activeEffect.deps.push(dep);
 }
 
 /**
@@ -62,6 +81,14 @@ export function effect(fn, options: any = {}) {
 
   _effect.run();
 
+  const runner: any = _effect.run.bind(_effect);
+  runner.effect = _effect; // 挂载 effect 对象到 runner 上方便访问
+
   // return a function --> runner
-  return _effect.run.bind(_effect);
+  return runner;
+}
+
+export function stop(runner) {
+  // 要从 runner 中拿到 effect 对象
+  runner.effect.stop();
 }

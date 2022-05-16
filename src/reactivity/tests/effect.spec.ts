@@ -1,5 +1,5 @@
 import { reactive } from '../reactive';
-import { effect } from '../effect';
+import { effect, stop } from '../effect';
 
 describe('effect', () => {
   // it 和 test 是一样的
@@ -73,5 +73,27 @@ describe('effect', () => {
     run();
     // effect fn should have run
     expect(dummy).toBe(2);
+  });
+
+  it('stop', () => {
+    // 将 dep 中的依赖清空
+    let dummy;
+    const foo = reactive({ bar: 1 });
+    const runner = effect(() => {
+      dummy = foo.bar;
+    });
+
+    foo.bar = 2;
+    expect(dummy).toBe(2);
+
+    // stop effect
+    stop(runner);
+
+    foo.bar = 3;
+    expect(dummy).toBe(2);
+
+    // stopped effect should still be manually callable
+    runner();
+    expect(dummy).toBe(3);
   });
 });
