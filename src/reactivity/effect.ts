@@ -1,10 +1,17 @@
+import { extend } from '../shared';
+
+const targetMap = new Map(); // target -> key 的映射
+let activeEffect; // 标记当前激活的 ReactiveEffect 对象
+
 class ReactiveEffect {
   private _fn: any;
   private active = true;
-  deps = [];
-  onStop: any;
 
-  constructor(fn, public scheduler?) {
+  deps? = [];
+  scheduler?: any;
+  onStop?: any;
+
+  constructor(fn) {
     this._fn = fn;
   }
 
@@ -40,7 +47,6 @@ function cleanupEffect(effect) {
  * @param target 对象
  * @param key 属性名
  */
-const targetMap = new Map(); // target -> key 的映射
 export function track(target, key) {
   // target -> key -> deps
   let depMaps = targetMap.get(target); // key -> deps 的映射
@@ -81,10 +87,10 @@ export function trigger(target, key) {
   }
 }
 
-let activeEffect; // 标记当前激活的 ReactiveEffect 对象
 export function effect(fn, options: any = {}) {
-  const _effect = new ReactiveEffect(fn, options.scheduler);
-  _effect.onStop = options.onStop;
+  const _effect = new ReactiveEffect(fn);
+
+  extend(_effect, options);
 
   _effect.run();
 
