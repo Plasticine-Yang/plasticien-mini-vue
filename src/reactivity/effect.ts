@@ -1,13 +1,15 @@
 class ReactiveEffect {
   private _fn: any;
 
-  constructor(fn) {
+  constructor(fn, public scheduler?) {
     this._fn = fn;
   }
 
   run() {
     activeEffect = this; // run 被调用时将当前 effect 对象标记为激活状态
-    this._fn();
+
+    // return value of _fn
+    return this._fn();
   }
 }
 
@@ -45,13 +47,21 @@ export function trigger(target, key) {
   const dep = depMaps.get(key);
 
   for (const effect of dep) {
-    effect.run();
+    if (effect.scheduler) {
+      effect.scheduler();
+    } else {
+      effect.run();
+    }
   }
 }
 
 let activeEffect; // 标记当前激活的 ReactiveEffect 对象
-export function effect(fn) {
-  const _effect = new ReactiveEffect(fn);
+export function effect(fn, options: any = {}) {
+  const scheduler = options.scheduler;
+  const _effect = new ReactiveEffect(fn, scheduler);
 
   _effect.run();
+
+  // return a function --> runner
+  return _effect.run.bind(_effect);
 }

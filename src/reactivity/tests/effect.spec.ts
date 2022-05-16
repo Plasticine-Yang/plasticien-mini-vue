@@ -26,4 +26,52 @@ describe('effect', () => {
     foo.age++;
     expect(nextAge).toBe(22);
   });
+
+  it('should return runner when call effect', () => {
+    let foo = 10;
+
+    const runner = effect(() => {
+      foo++;
+      return 'foo';
+    });
+
+    expect(foo).toBe(11);
+    const res = runner(); // runner will return the return value of effect wrapper fn
+    expect(foo).toBe(12);
+    expect(res).toBe('foo');
+  });
+
+  it('scheduler', () => {
+    // 1. effect 接收第二个 options 参数 其中包含 scheduler
+    // 2. effect 首次执行时会执行 fn
+    // 3. 当响应式对象 set 时不会执行 fn 而是执行 scheduler
+    // 4. 执行 runner 的时候仍然能够执行 fn
+
+    let dummy;
+    let run: any;
+    const scheduler = jest.fn(() => {
+      run = runner;
+    });
+
+    const foo = reactive({ bar: 1 });
+    const runner = effect(
+      () => {
+        dummy = foo.bar;
+      },
+      { scheduler }
+    );
+
+    // scheduler should not be called on first run effect
+    expect(scheduler).not.toHaveBeenCalled();
+    expect(dummy).toBe(1);
+    // scheduler should be called on first trigger
+    foo.bar++;
+    expect(scheduler).toHaveBeenCalledTimes(1);
+    // effect fn should not run yet
+    expect(dummy).toBe(1);
+    // manually run
+    run();
+    // effect fn should have run
+    expect(dummy).toBe(2);
+  });
 });
