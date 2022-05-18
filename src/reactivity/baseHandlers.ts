@@ -1,4 +1,5 @@
 import { track, trigger } from './effect';
+import { isReactiveSymbol, isReadonlySymbol } from './reactive';
 
 const get = createGetter();
 const set = createSetter();
@@ -6,6 +7,13 @@ const readonlyGet = createGetter(true);
 
 function createGetter(isReadonly = false) {
   return function get(target, key) {
+    // isReactive
+    if (key === isReactiveSymbol) {
+      return !isReadonly;
+    } else if (key === isReadonlySymbol) {
+      return isReadonly;
+    }
+
     const res = Reflect.get(target, key);
 
     if (!isReadonly) {
