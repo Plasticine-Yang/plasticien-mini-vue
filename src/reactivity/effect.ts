@@ -79,7 +79,14 @@ export function track(target, key) {
     depMaps.set(key, dep);
   }
 
-  // 依赖收集 -- 将当前激活的 fn 加入到 dep 中
+  trackEffects(dep);
+}
+
+/**
+ * @description   依赖收集 -- 将当前激活的 fn 加入到 dep 中
+ * @param dep 依赖集合 Set 对象
+ */
+export function trackEffects(dep) {
   if (dep.has(activeEffect)) return; // 已经在 dep 中则无需再 add
   dep.add(activeEffect);
   // 反向收集 effect 给 dep
@@ -89,7 +96,7 @@ export function track(target, key) {
 /**
  * @description 当前副作用函数 effect 对象是否处于被 track 状态
  */
-function isTracking() {
+export function isTracking() {
   return shouldTrack && activeEffect !== undefined;
 }
 
@@ -101,6 +108,10 @@ export function trigger(target, key) {
   const depMaps = targetMap.get(target);
   const dep = depMaps.get(key);
 
+  triggerEffects(dep);
+}
+
+export function triggerEffects(dep) {
   for (const effect of dep) {
     if (effect.scheduler) {
       effect.scheduler();
