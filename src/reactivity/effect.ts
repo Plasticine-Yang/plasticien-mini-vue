@@ -2,6 +2,7 @@ import { extend } from '../shared';
 
 const targetMap = new Map(); // target -> key 的映射
 let activeEffect; // 标记当前激活的 ReactiveEffect 对象
+let shouldTrack; // 是否应当收集依赖
 
 class ReactiveEffect {
   private _fn: any;
@@ -16,10 +17,21 @@ class ReactiveEffect {
   }
 
   run() {
+    if (!this.active) {
+      // 已经被 stop 能来到这里都是手动执行 runner 才会进来的
+      return this._fn();
+    }
+
+    // 处于 active 状态
+    shouldTrack = true; // 打开 track 开关
     activeEffect = this; // run 被调用时将当前 effect 对象标记为激活状态
 
-    // return value of _fn
-    return this._fn();
+    const result = this._fn();
+
+    // reset -- 将 shouldTrack 关闭
+    shouldTrack = false;
+
+    return result;
   }
 
   stop() {
@@ -40,6 +52,9 @@ class ReactiveEffect {
  */
 function cleanupEffect(effect) {
   effect.deps.forEach((dep: any) => dep.delete(effect));
+
+  // deps 中所有的 dep 清空后，deps 数组中没必要存储空的 dep Set 对象了
+  effect.deps.length = 0;
 }
 
 /**
@@ -48,6 +63,8 @@ function cleanupEffect(effect) {
  * @param key 属性名
  */
 export function track(target, key) {
+  // 不是被 track 的状态则不需要进行依赖收集
+  if (!isTracking()) return;
   // target -> key -> deps
   let depMaps = targetMap.get(target); // key -> deps 的映射
   if (!depMaps) {
@@ -62,12 +79,18 @@ export function track(target, key) {
     depMaps.set(key, dep);
   }
 
-  if (!activeEffect) return;
-
   // 依赖收集 -- 将当前激活的 fn 加入到 dep 中
+  if (dep.has(activeEffect)) return; // 已经在 dep 中则无需再 add
   dep.add(activeEffect);
   // 反向收集 effect 给 dep
   activeEffect.deps.push(dep);
+}
+
+/**
+ * @description 当前副作用函数 effect 对象是否处于被 track 状态
+ */
+function isTracking() {
+  return shouldTrack && activeEffect !== undefined;
 }
 
 /**
