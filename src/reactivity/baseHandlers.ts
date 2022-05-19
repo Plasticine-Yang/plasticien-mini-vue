@@ -1,4 +1,4 @@
-import { isObject } from '../shared';
+import { extend, isObject } from '../shared';
 import { track, trigger } from './effect';
 import {
   isReactiveSymbol,
@@ -10,8 +10,9 @@ import {
 const get = createGetter();
 const set = createSetter();
 const readonlyGet = createGetter(true);
+const shallowReadonlyGet = createGetter(true, true);
 
-function createGetter(isReadonly = false) {
+function createGetter(isReadonly = false, shallow = false) {
   return function get(target, key) {
     // isReactive
     if (key === isReactiveSymbol) {
@@ -24,6 +25,10 @@ function createGetter(isReadonly = false) {
 
     if (!isReadonly) {
       track(target, key);
+    }
+
+    if (shallow) {
+      return res;
     }
 
     if (isObject(res)) {
@@ -57,3 +62,7 @@ export const readonlyHandlers = {
     return true;
   },
 };
+
+export const shallowReadonlyHandlers = extend({}, readonlyHandlers, {
+  get: shallowReadonlyGet,
+});
