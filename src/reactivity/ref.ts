@@ -20,6 +20,7 @@ class RefImpl {
   private _value: any;
   private _rawValue: any;
   public dep;
+  public __v_isRef = true;
 
   constructor(value) {
     // 对象类型需要转成 reactive 对象
@@ -41,6 +42,14 @@ class RefImpl {
       triggerEffects(this.dep);
     }
   }
+}
+
+export function isRef(r) {
+  return !!(r && r.__v_isRef === true);
+}
+
+export function unref(r) {
+  return isRef(r) ? r.value : r;
 }
 
 export function ref(value) {
