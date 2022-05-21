@@ -6,8 +6,8 @@ describe('computed', () => {
     const value = reactive({ foo: 1 });
     const cValue = computed(() => value.foo);
     expect(cValue.value).toBe(1);
-    // value.foo = 2;
-    // expect(cValue.value).toBe(2);
+    value.foo = 2;
+    expect(cValue.value).toBe(2);
   });
 
   it('should compute lazily', () => {
