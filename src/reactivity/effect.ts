@@ -4,7 +4,7 @@ const targetMap = new Map(); // target -> key 的映射
 let activeEffect; // 标记当前激活的 ReactiveEffect 对象
 let shouldTrack; // 是否应当收集依赖
 
-class ReactiveEffect {
+export class ReactiveEffect {
   private _fn: any;
   private active = true;
 
