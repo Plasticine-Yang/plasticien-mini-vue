@@ -52,6 +52,24 @@ export function unref(r) {
   return isRef(r) ? r.value : r;
 }
 
+export function proxyRefs(objectWithRefs) {
+  return new Proxy(objectWithRefs, {
+    get(target, key) {
+      // 无论属性是否是 ref 对象 只要调用 unref 就可以保证返回的是用户想要的值
+      return unref(Reflect.get(target, key));
+    },
+    set(target, key, newVal) {
+      const oldVal = target[key];
+      if (isRef(oldVal) && !isRef(newVal)) {
+        oldVal.value = newVal;
+        return true;
+      } else {
+        return Reflect.set(target, key, newVal);
+      }
+    },
+  });
+}
+
 export function ref(value) {
   return new RefImpl(value);
 }
