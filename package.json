@@ -2,9 +2,11 @@
   "name": "plasticine-mini-vue",
   "version": "1.0.0",
   "description": "",
-  "main": "index.js",
+  "main": "lib/plasticine-mini-vue.cjs.js",
+  "module": "lib/plasticine-mini-vue.esm.js",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "build": "rollup -c ./rollup.config.js"
   },
   "keywords": [],
   "author": "",
@@ -13,9 +15,12 @@
     "@babel/core": "^7.17.10",
     "@babel/preset-env": "^7.17.10",
     "@babel/preset-typescript": "^7.16.7",
+    "@rollup/plugin-typescript": "^8.3.2",
     "@types/jest": "^27.5.1",
     "babel-jest": "^28.1.0",
     "jest": "^28.1.0",
+    "rollup": "^2.74.1",
+    "tslib": "^2.4.0",
     "typescript": "^4.6.4"
   }
 }
