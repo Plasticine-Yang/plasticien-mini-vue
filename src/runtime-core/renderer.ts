@@ -1,3 +1,4 @@
+import { isObject } from '../shared';
 import { createComponentInstance, setupComponent } from './component';
 
 export function render(vnode: any, container: any) {
@@ -12,8 +13,44 @@ export function render(vnode: any, container: any) {
  * element 类型则会进行渲染
  */
 export function patch(vnode, container) {
-  // 处理 component 类型
-  processComponent(vnode, container);
+  const { type } = vnode;
+
+  if (typeof type === 'string') {
+    // 真实 DOM
+    processElement(vnode, container);
+  } else if (isObject(type)) {
+    // 处理 component 类型
+    processComponent(vnode, container);
+  }
+}
+
+function processElement(vnode: any, container: any) {
+  mountElement(vnode, container);
+}
+
+function mountElement(vnode: any, container: any) {
+  const el = document.createElement(vnode.type);
+  const { children } = vnode;
+
+  if (typeof children === 'string') {
+    el.textContent = children;
+  } else if (Array.isArray(children)) {
+    mountChildren(children, el);
+  }
+
+  // props
+  const { props } = vnode;
+  for (const [key, value] of Object.entries(props)) {
+    el.setAttribute(key, value);
+  }
+
+  container.append(el);
+}
+
+function mountChildren(vnode: any, container: any) {
+  vnode.forEach((v) => {
+    patch(v, container);
+  });
 }
 
 function processComponent(vnode: any, container: any) {
