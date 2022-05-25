@@ -1,4 +1,5 @@
 import { isObject } from '../shared';
+import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 
 export function render(vnode: any, container: any) {
@@ -13,12 +14,12 @@ export function render(vnode: any, container: any) {
  * element 类型则会进行渲染
  */
 export function patch(vnode, container) {
-  const { type } = vnode;
+  const { type, shapeFlag } = vnode;
 
-  if (typeof type === 'string') {
+  if (shapeFlag & ShapeFlags.ELEMENT) {
     // 真实 DOM
     processElement(vnode, container);
-  } else if (isObject(type)) {
+  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
     // 处理 component 类型
     processComponent(vnode, container);
   }
@@ -31,11 +32,11 @@ function processElement(vnode: any, container: any) {
 function mountElement(vnode: any, container: any) {
   // 将 DOM 对象挂载到 vnode 上 从而让组件实例能够访问到
   const el = (vnode.el = document.createElement(vnode.type));
-  const { children } = vnode;
+  const { children, shapeFlag } = vnode;
 
-  if (typeof children === 'string') {
+  if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
-  } else if (Array.isArray(children)) {
+  } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
     mountChildren(children, el);
   }
 
