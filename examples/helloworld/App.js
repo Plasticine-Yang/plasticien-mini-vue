@@ -1,8 +1,10 @@
 import { h } from '../../lib/plasticine-mini-vue.esm.js';
 
+window.self = null;
 export const App = {
   // 由于还没有实现模板编译的功能 因此先用 render 函数来替代
   render() {
+    window.self = this;
     return h(
       'div',
       {

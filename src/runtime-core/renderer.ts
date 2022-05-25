@@ -29,7 +29,8 @@ function processElement(vnode: any, container: any) {
 }
 
 function mountElement(vnode: any, container: any) {
-  const el = document.createElement(vnode.type);
+  // 将 DOM 对象挂载到 vnode 上 从而让组件实例能够访问到
+  const el = (vnode.el = document.createElement(vnode.type));
   const { children } = vnode;
 
   if (typeof children === 'string') {
@@ -67,11 +68,15 @@ function mountComponent(vnode: any, container) {
 }
 
 function setupRenderEffect(instance, container) {
-  const { proxy } = instance;
+  const { proxy, vnode } = instance;
   const subTree = instance.render.call(proxy);
 
   // subTree 可能是 Component 类型也可能是 Element 类型
   // 调用 patch 去处理 subTree
   // Element 类型则直接挂载
   patch(subTree, container);
+
+  // subTree vnode 经过 patch 后就变成了真实的 DOM 此时 subTree.el 指向了根 DOM 元素
+  // 将 subTree.el 赋值给 vnode.el 就可以在组件实例上访问到挂载的根 DOM 元素对象了
+  vnode.el = subTree.el;
 }
