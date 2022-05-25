@@ -12,6 +12,7 @@ export const App = {
         h('p', { class: 'cyan' }, 'hi '),
         h('p', { class: 'darkcyan' }, 'plasticine '),
         h('p', { class: 'darkviolet' }, 'mini-vue!'),
+        h('p', { class: 'darkcyan' }, `setupState msg: ${this.msg}`),
       ]
     );
   },

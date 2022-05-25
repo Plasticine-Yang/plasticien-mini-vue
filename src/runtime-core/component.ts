@@ -19,6 +19,19 @@ function setupStatefulComponent(instance: any) {
   const Component = instance.type;
   const { setup } = Component;
 
+  // ctx -- context
+  instance.proxy = new Proxy(
+    {},
+    {
+      get(target, key) {
+        const { setupState } = instance;
+        if (key in setupState) {
+          return setupState[key];
+        }
+      },
+    }
+  );
+
   if (setup) {
     const setupResult = setup();
 

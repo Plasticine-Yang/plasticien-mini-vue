@@ -67,7 +67,8 @@ function mountComponent(vnode: any, container) {
 }
 
 function setupRenderEffect(instance, container) {
-  const subTree = instance.render();
+  const { proxy } = instance;
+  const subTree = instance.render.call(proxy);
 
   // subTree 可能是 Component 类型也可能是 Element 类型
   // 调用 patch 去处理 subTree
