@@ -9,6 +9,12 @@ export const App = {
       'div',
       {
         class: ['cyan', 'success'],
+        onClick() {
+          console.log('click...');
+        },
+        onMouseMove() {
+          console.log('mouse moving...');
+        },
       },
       [
         h('p', { class: 'cyan' }, 'hi '),

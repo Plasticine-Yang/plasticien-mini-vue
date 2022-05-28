@@ -34,6 +34,7 @@ function mountElement(vnode: any, container: any) {
   const el = (vnode.el = document.createElement(vnode.type));
   const { children, shapeFlag } = vnode;
 
+  // children
   if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
   } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
@@ -43,7 +44,13 @@ function mountElement(vnode: any, container: any) {
   // props
   const { props } = vnode;
   for (const [key, value] of Object.entries(props)) {
-    el.setAttribute(key, value);
+    const isOn = (key: string) => /^on[A-Z]/.test(key);
+    // 处理事件监听
+    if (isOn(key)) {
+      el.addEventListener(key.slice(2).toLowerCase(), value);
+    } else {
+      el.setAttribute(key, value);
+    }
   }
 
   container.append(el);
