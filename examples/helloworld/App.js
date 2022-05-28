@@ -1,4 +1,5 @@
 import { h } from '../../lib/plasticine-mini-vue.esm.js';
+import { Foo } from './Foo.js';
 
 window.self = null;
 export const App = {
@@ -21,6 +22,7 @@ export const App = {
         h('p', { class: 'darkcyan' }, 'plasticine '),
         h('p', { class: 'darkviolet' }, 'mini-vue!'),
         h('p', { class: 'darkcyan' }, `setupState msg: ${this.msg}`),
+        h(Foo, { count: 666 }),
       ]
     );
   },
