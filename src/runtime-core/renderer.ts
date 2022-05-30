@@ -1,6 +1,6 @@
-import { isObject } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
+import { Fragment } from './vnode';
 
 export function render(vnode: any, container: any) {
   // 调用 patch
@@ -16,13 +16,25 @@ export function render(vnode: any, container: any) {
 export function patch(vnode, container) {
   const { type, shapeFlag } = vnode;
 
-  if (shapeFlag & ShapeFlags.ELEMENT) {
-    // 真实 DOM
-    processElement(vnode, container);
-  } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
-    // 处理 component 类型
-    processComponent(vnode, container);
+  switch (type) {
+    case Fragment:
+      processFragment(vnode, container);
+      break;
+
+    default:
+      if (shapeFlag & ShapeFlags.ELEMENT) {
+        // 真实 DOM
+        processElement(vnode, container);
+      } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
+        // 处理 component 类型
+        processComponent(vnode, container);
+      }
+      break;
   }
+}
+
+function processFragment(vnode: any, container: any) {
+  mountChildren(vnode.children, container);
 }
 
 function processElement(vnode: any, container: any) {
@@ -56,8 +68,8 @@ function mountElement(vnode: any, container: any) {
   container.append(el);
 }
 
-function mountChildren(vnode: any, container: any) {
-  vnode.forEach((v) => {
+function mountChildren(children: any, container: any) {
+  children.forEach((v) => {
     patch(v, container);
   });
 }

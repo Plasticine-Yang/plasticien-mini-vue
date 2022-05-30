@@ -1,5 +1,7 @@
 import { ShapeFlags } from '../shared/shapeFlags';
 
+export const Fragment = Symbol('Fragment');
+
 /**
  * @description 创建虚拟 DOM 结点
  * @param type 组件导出的对象
