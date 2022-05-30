@@ -1,6 +1,6 @@
 import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
-import { Fragment } from './vnode';
+import { Fragment, Text } from './vnode';
 
 export function render(vnode: any, container: any) {
   // 调用 patch
@@ -20,6 +20,9 @@ export function patch(vnode, container) {
     case Fragment:
       processFragment(vnode, container);
       break;
+    case Text:
+      processText(vnode, container);
+      break;
 
     default:
       if (shapeFlag & ShapeFlags.ELEMENT) {
@@ -31,6 +34,12 @@ export function patch(vnode, container) {
       }
       break;
   }
+}
+
+function processText(vnode: any, container: any) {
+  const { children } = vnode;
+  const textNode = (vnode.el = document.createTextNode(children));
+  container.append(textNode);
 }
 
 function processFragment(vnode: any, container: any) {

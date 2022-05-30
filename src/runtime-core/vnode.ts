@@ -1,6 +1,7 @@
 import { ShapeFlags } from '../shared/shapeFlags';
 
 export const Fragment = Symbol('Fragment');
+export const Text = Symbol('Text');
 
 /**
  * @description 创建虚拟 DOM 结点
@@ -32,6 +33,10 @@ export function createVNode(type, props?, children?) {
   }
 
   return vnode;
+}
+
+export function createTextVNode(text: string) {
+  return createVNode(Text, {}, text);
 }
 
 function getShapeFlag(type) {
