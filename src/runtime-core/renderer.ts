@@ -87,9 +87,9 @@ function processComponent(vnode: any, container: any) {
   mountComponent(vnode, container);
 }
 
-function mountComponent(vnode: any, container) {
+function mountComponent(initialVNode: any, container) {
   // 根据 vnode 创建组件实例
-  const instance = createComponentInstance(vnode);
+  const instance = createComponentInstance(initialVNode);
 
   // setup 组件实例
   setupComponent(instance);
