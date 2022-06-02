@@ -4,6 +4,8 @@ import { initProps } from './componentProps';
 import { PublicInstanceProxyHandlers } from './componentPublicInstance';
 import { initSlots } from './componentSlots';
 
+let currentInstance = null;
+
 export function createComponentInstance(vnode) {
   const component = {
     vnode,
@@ -34,9 +36,11 @@ function setupStatefulComponent(instance: any) {
   instance.proxy = new Proxy({ _: instance }, PublicInstanceProxyHandlers);
 
   if (setup) {
+    setCurrentInstance(instance);
     const setupResult = setup(shallowReadonly(instance.props), {
       emit: instance.emit.bind(null, instance),
     });
+    setCurrentInstance(null);
 
     // setupResult 可能是 function 也可能是 object
     // - function 则将其作为组件的 render 函数
@@ -58,4 +62,12 @@ function finishComponentSetup(instance: any) {
   const Component = instance.type;
 
   instance.render = Component.render;
+}
+
+export function getCurrentInstance() {
+  return currentInstance;
+}
+
+function setCurrentInstance(instance) {
+  currentInstance = instance;
 }
