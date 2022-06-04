@@ -13,12 +13,12 @@ export function render(vnode: any, container: any) {
  * component 类型会递归调用 patch 继续处理
  * element 类型则会进行渲染
  */
-export function patch(vnode, container) {
+export function patch(vnode, container, parentComponent = null) {
   const { type, shapeFlag } = vnode;
 
   switch (type) {
     case Fragment:
-      processFragment(vnode, container);
+      processFragment(vnode, container, parentComponent);
       break;
     case Text:
       processText(vnode, container);
@@ -27,10 +27,10 @@ export function patch(vnode, container) {
     default:
       if (shapeFlag & ShapeFlags.ELEMENT) {
         // 真实 DOM
-        processElement(vnode, container);
+        processElement(vnode, container, parentComponent);
       } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
         // 处理 component 类型
-        processComponent(vnode, container);
+        processComponent(vnode, container, parentComponent);
       }
       break;
   }
@@ -42,15 +42,15 @@ function processText(vnode: any, container: any) {
   container.append(textNode);
 }
 
-function processFragment(vnode: any, container: any) {
-  mountChildren(vnode.children, container);
+function processFragment(vnode: any, container: any, parentComponent) {
+  mountChildren(vnode.children, container, parentComponent);
 }
 
-function processElement(vnode: any, container: any) {
-  mountElement(vnode, container);
+function processElement(vnode: any, container: any, parentComponent) {
+  mountElement(vnode, container, parentComponent);
 }
 
-function mountElement(vnode: any, container: any) {
+function mountElement(vnode: any, container: any, parentComponent) {
   // 将 DOM 对象挂载到 vnode 上 从而让组件实例能够访问到
   const el = (vnode.el = document.createElement(vnode.type));
   const { children, shapeFlag } = vnode;
@@ -59,7 +59,7 @@ function mountElement(vnode: any, container: any) {
   if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
     el.textContent = children;
   } else if (shapeFlag & ShapeFlags.ARRAY_CHILDREN) {
-    mountChildren(children, el);
+    mountChildren(children, el, parentComponent);
   }
 
   // props
@@ -77,19 +77,19 @@ function mountElement(vnode: any, container: any) {
   container.append(el);
 }
 
-function mountChildren(children: any, container: any) {
+function mountChildren(children: any, container: any, parentComponent) {
   children.forEach((v) => {
-    patch(v, container);
+    patch(v, container, parentComponent);
   });
 }
 
-function processComponent(vnode: any, container: any) {
-  mountComponent(vnode, container);
+function processComponent(vnode: any, container: any, parentComponent) {
+  mountComponent(vnode, container, parentComponent);
 }
 
-function mountComponent(initialVNode: any, container) {
+function mountComponent(initialVNode: any, container, parentComponent) {
   // 根据 vnode 创建组件实例
-  const instance = createComponentInstance(initialVNode);
+  const instance = createComponentInstance(initialVNode, parentComponent);
 
   // setup 组件实例
   setupComponent(instance);
@@ -103,7 +103,7 @@ function setupRenderEffect(instance, container) {
   // subTree 可能是 Component 类型也可能是 Element 类型
   // 调用 patch 去处理 subTree
   // Element 类型则直接挂载
-  patch(subTree, container);
+  patch(subTree, container, instance);
 
   // subTree vnode 经过 patch 后就变成了真实的 DOM 此时 subTree.el 指向了根 DOM 元素
   // 将 subTree.el 赋值给 vnode.el 就可以在组件实例上访问到挂载的根 DOM 元素对象了
