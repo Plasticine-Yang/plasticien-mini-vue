@@ -1,3 +1,4 @@
+import { effect } from '../reactivity';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { createAppAPI } from './createApp';
@@ -8,7 +9,7 @@ export function createRenderer(options) {
 
   function render(vnode: any, container: any) {
     // 调用 patch
-    patch(vnode, container);
+    patch(null, vnode, container);
   }
 
   /**
@@ -17,41 +18,61 @@ export function createRenderer(options) {
    * component 类型会递归调用 patch 继续处理
    * element 类型则会进行渲染
    */
-  function patch(vnode, container, parentComponent = null) {
-    const { type, shapeFlag } = vnode;
+  function patch(n1, n2, container, parentComponent = null) {
+    const { type, shapeFlag } = n2;
 
     switch (type) {
       case Fragment:
-        processFragment(vnode, container, parentComponent);
+        processFragment(n1, n2, container, parentComponent);
         break;
       case Text:
-        processText(vnode, container);
+        processText(n1, n2, container);
         break;
 
       default:
         if (shapeFlag & ShapeFlags.ELEMENT) {
           // 真实 DOM
-          processElement(vnode, container, parentComponent);
+          processElement(n1, n2, container, parentComponent);
         } else if (shapeFlag & ShapeFlags.STATEFUL_COMPONENT) {
           // 处理 component 类型
-          processComponent(vnode, container, parentComponent);
+          processComponent(n1, n2, container, parentComponent);
         }
         break;
     }
   }
 
-  function processText(vnode: any, container: any) {
-    const { children } = vnode;
-    const textNode = (vnode.el = document.createTextNode(children));
+  function processText(n1, n2: any, container: any) {
+    const { children } = n2;
+    const textNode = (n2.el = document.createTextNode(children));
     container.append(textNode);
   }
 
-  function processFragment(vnode: any, container: any, parentComponent) {
-    mountChildren(vnode.children, container, parentComponent);
+  function processFragment(n1, n2: any, container: any, parentComponent) {
+    mountChildren(n2.children, container, parentComponent);
   }
 
-  function processElement(vnode: any, container: any, parentComponent) {
-    mountElement(vnode, container, parentComponent);
+  function processElement(n1, n2: any, container: any, parentComponent) {
+    if (!n1) {
+      // n1 不存在表示是首次挂载，应当执行初始化的逻辑
+      mountElement(n2, container, parentComponent);
+    } else {
+      // n1 存在表示更新 调用 patchElement 执行更新的逻辑
+      patchElement(n1, n2, container);
+    }
+  }
+
+  /**
+   * @description 对比 n1 和 n2 虚拟结点 找出不同的部分进行更新
+   * @param n1 旧结点
+   * @param n2 新结点
+   * @param container 容器
+   */
+  function patchElement(n1, n2, container) {
+    console.log('n1', n1);
+    console.log('n2', n2);
+
+    // 找出 props 的不同
+    // 找出 children 的不同
   }
 
   function mountElement(vnode: any, container: any, parentComponent) {
@@ -77,12 +98,12 @@ export function createRenderer(options) {
 
   function mountChildren(children: any, container: any, parentComponent) {
     children.forEach((v) => {
-      patch(v, container, parentComponent);
+      patch(null, v, container, parentComponent);
     });
   }
 
-  function processComponent(vnode: any, container: any, parentComponent) {
-    mountComponent(vnode, container, parentComponent);
+  function processComponent(n1, n2: any, container: any, parentComponent) {
+    mountComponent(n2, container, parentComponent);
   }
 
   function mountComponent(initialVNode: any, container, parentComponent) {
@@ -95,17 +116,30 @@ export function createRenderer(options) {
   }
 
   function setupRenderEffect(instance, container) {
-    const { proxy, vnode } = instance;
-    const subTree = instance.render.call(proxy);
+    effect(() => {
+      if (!instance.isMounted) {
+        const { proxy, vnode } = instance;
+        const subTree = (instance.subTree = instance.render.call(proxy));
 
-    // subTree 可能是 Component 类型也可能是 Element 类型
-    // 调用 patch 去处理 subTree
-    // Element 类型则直接挂载
-    patch(subTree, container, instance);
+        // subTree 可能是 Component 类型也可能是 Element 类型
+        // 调用 patch 去处理 subTree
+        // Element 类型则直接挂载
+        // 初次挂载 n1 不存在
+        patch(null, subTree, container, instance);
 
-    // subTree vnode 经过 patch 后就变成了真实的 DOM 此时 subTree.el 指向了根 DOM 元素
-    // 将 subTree.el 赋值给 vnode.el 就可以在组件实例上访问到挂载的根 DOM 元素对象了
-    vnode.el = subTree.el;
+        // subTree vnode 经过 patch 后就变成了真实的 DOM 此时 subTree.el 指向了根 DOM 元素
+        // 将 subTree.el 赋值给 vnode.el 就可以在组件实例上访问到挂载的根 DOM 元素对象了
+        vnode.el = subTree.el;
+        instance.isMounted = true; // 初始化后及时将其标记为已挂载
+      } else {
+        const { proxy, vnode } = instance;
+        const subTree = instance.render.call(proxy); // 新 vnode
+        const prevSubTree = instance.subTree; // 旧 vnode
+        instance.subTree = subTree; // 新的 vnode 要更新到组件实例的 subTree 属性 作为下一更新的旧 vnode
+
+        patch(prevSubTree, subTree, container, instance);
+      }
+    });
   }
 
   return {
