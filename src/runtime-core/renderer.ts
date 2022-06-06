@@ -5,7 +5,11 @@ import { createAppAPI } from './createApp';
 import { Fragment, Text } from './vnode';
 
 export function createRenderer(options) {
-  const { createElement, patchProp, insert } = options;
+  const {
+    createElement: hostCreateElement,
+    patchProp: hostPatchProp,
+    insert: hostInsert,
+  } = options;
 
   function render(vnode: any, container: any) {
     // 调用 patch
@@ -77,7 +81,7 @@ export function createRenderer(options) {
 
   function mountElement(vnode: any, container: any, parentComponent) {
     // 将创建的元素挂载到 vnode 上 从而让组件实例能够访问到
-    const el = (vnode.el = createElement(vnode.type));
+    const el = (vnode.el = hostCreateElement(vnode.type));
     const { children, shapeFlag } = vnode;
 
     // children
@@ -90,10 +94,10 @@ export function createRenderer(options) {
     // props
     const { props } = vnode;
     for (const [key, value] of Object.entries(props)) {
-      patchProp(el, key, value);
+      hostPatchProp(el, key, value);
     }
 
-    insert(el, container);
+    hostInsert(el, container);
   }
 
   function mountChildren(children: any, container: any, parentComponent) {
