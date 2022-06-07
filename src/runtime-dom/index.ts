@@ -22,10 +22,27 @@ function insert(el, container) {
   container.append(el);
 }
 
+/**
+ * @description 移除子元素
+ * @param child 子元素
+ */
+function remove(child) {
+  const parent = child.parentNode;
+  if (parent) {
+    parent.removeChild(child);
+  }
+}
+
+function setElementText(el, text) {
+  el.textContent = text;
+}
+
 const renderer: any = createRenderer({
   createElement,
   patchProp,
   insert,
+  remove,
+  setElementText,
 });
 
 export function createApp(...args) {

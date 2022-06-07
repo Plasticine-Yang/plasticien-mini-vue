@@ -10,6 +10,8 @@ export function createRenderer(options) {
     createElement: hostCreateElement,
     patchProp: hostPatchProp,
     insert: hostInsert,
+    remove: hostRemove,
+    setElementText: hostSetElementText,
   } = options;
 
   function render(vnode: any, container: any) {
@@ -61,8 +63,11 @@ export function createRenderer(options) {
       // n1 不存在表示是首次挂载，应当执行初始化的逻辑
       mountElement(n2, container, parentComponent);
     } else {
+      console.log('--------------- 更新Element ---------------');
+      console.log('旧vnode', n1);
+      console.log('新vnode', n2);
       // n1 存在表示更新 调用 patchElement 执行更新的逻辑
-      patchElement(n1, n2, container);
+      patchElement(n1, n2, container, parentComponent);
     }
   }
 
@@ -72,15 +77,59 @@ export function createRenderer(options) {
    * @param n2 新结点
    * @param container 容器
    */
-  function patchElement(n1, n2, container) {
+  function patchElement(n1, n2, container, parentComponent) {
     const el = (n2.el = n1.el);
     const oldProps = n1.props || EMPTY_OBJ;
     const newProps = n2.props || EMPTY_OBJ;
 
+    // 找出 children 的不同
+    patchChildren(n1, n2, el, parentComponent);
+
     // 找出 props 的不同
     patchProps(el, oldProps, newProps);
+  }
 
-    // 找出 children 的不同
+  function patchChildren(n1, n2, container, parentComponent) {
+    // n2 的 children 是 text 类型
+    const prevShapeFlag = n1.shapeFlag;
+    const { shapeFlag } = n2;
+    const c2 = n2.children;
+
+    if (shapeFlag & ShapeFlags.TEXT_CHILDREN) {
+      // 新 children 是 text 类型
+      if (prevShapeFlag & ShapeFlags.ARRAY_CHILDREN) {
+        // 旧 children 是 array 类型 -- 从 array 变为 text
+
+        // 卸载 array 的内容
+        unmountChildren(n1.children);
+
+        // 挂载 text 的内容
+        hostSetElementText(container, c2);
+      } else {
+        // 旧 children 是 text 类型 -- 从 text 变为 text
+        hostSetElementText(container, c2); // 直接修改文本内容即可
+      }
+    } else {
+      // 新 children 是 array 类型
+      if (prevShapeFlag & ShapeFlags.TEXT_CHILDREN) {
+        // 旧 children 是 text 类型 -- 从 text 变为 array
+
+        // 清空旧结点中的文本内容
+        hostSetElementText(container, '');
+
+        // 挂载新结点中 array 的内容
+        mountChildren(c2, container, parentComponent);
+      }
+    }
+  }
+
+  function unmountChildren(children) {
+    for (let i = 0; i < children.length; i++) {
+      // 获取到 vnode 中的 el
+      const el = children[i].el;
+      // 调用自定义渲染器中的 remove 逻辑
+      hostRemove(el);
+    }
   }
 
   /**
