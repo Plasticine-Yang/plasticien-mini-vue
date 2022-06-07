@@ -1,3 +1,5 @@
+export const EMPTY_OBJ = {};
+
 /**
  * @description 合并对象
  */
