@@ -259,7 +259,7 @@ export function createRenderer(options) {
           newIndex = keyToNewIndexMap.get(prevChild.key);
         } else {
           // 用户未给结点设置 key 属性 -- 通过 isSameVNodeType 判断结点是否相同
-          for (let j = s2; j < e2; j++) {
+          for (let j = s2; j <= e2; j++) {
             if (isSameVNodeType(prevChild, c2[j])) {
               newIndex = j;
               break;
@@ -268,6 +268,8 @@ export function createRenderer(options) {
         }
 
         if (newIndex === undefined) {
+          console.log('remove element: ', prevChild.el);
+
           // newIndex 不存在说明 prevChild 在新 children 中已经消失 应当移除对应元素
           hostRemove(prevChild.el);
         } else {
@@ -304,6 +306,8 @@ export function createRenderer(options) {
         const anchor = nextIndex + 1 < l2 ? c2[nextIndex + 1].el : null;
 
         if (newIndexToOldIndexMap[i] === 0) {
+          console.log('add element: ', nextChild);
+
           // newIndexToOldIndexMap 中仍然存在 0 的话意味着它是新增元素
           patch(null, nextChild, container, parentComponent, anchor);
         } else if (moved) {

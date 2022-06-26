@@ -1,6 +1,7 @@
 import { h } from '../../lib/plasticine-mini-vue.esm.js';
 import {
   ArrayToArrayCase1,
+  ArrayToArrayCase10,
   ArrayToArrayCase2,
   ArrayToArrayCase3,
   ArrayToArrayCase4,
@@ -30,7 +31,8 @@ export const App = {
       // h(ArrayToArrayCase6),
       // h(ArrayToArrayCase7),
       // h(ArrayToArrayCase8),
-      h(ArrayToArrayCase9),
+      // h(ArrayToArrayCase9),
+      h(ArrayToArrayCase10),
     ]);
   },
 };

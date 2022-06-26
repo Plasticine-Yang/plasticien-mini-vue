@@ -300,3 +300,41 @@ export const ArrayToArrayCase9 = {
       : h('div', {}, nextChildrenCase9);
   },
 };
+
+// ==================== Case10: 测试 bug: 对于没有 key 的元素应当是被移动 而不是删除后再创建 ====================
+const prevChildrenCase10 = [
+  h('p', { key: 'A' }, 'A'),
+  h('p', { key: 'B' }, 'B'),
+  h('p', {}, 'C'),
+  h('p', { key: 'E' }, 'E'),
+  h('p', { key: 'D' }, 'D'),
+  h('p', { key: 'F' }, 'F'),
+  h('p', { key: 'G' }, 'G'),
+];
+
+const nextChildrenCase10 = [
+  h('p', { key: 'A' }, 'A'),
+  h('p', { key: 'B' }, 'B'),
+  h('p', { key: 'E' }, 'new E'),
+  h('p', {}, 'new C'),
+  h('p', { key: 'D' }, 'D'),
+  h('p', { key: 'F' }, 'F'),
+  h('p', { key: 'G' }, 'G'),
+];
+
+export const ArrayToArrayCase10 = {
+  name: 'ArrayToArrayCase10',
+  setup() {
+    const toggleChildrenCase10 = ref(true);
+    window.toggleChildrenCase10 = toggleChildrenCase10;
+
+    return {
+      toggleChildrenCase10,
+    };
+  },
+  render() {
+    return this.toggleChildrenCase10
+      ? h('div', {}, prevChildrenCase10)
+      : h('div', {}, nextChildrenCase10);
+  },
+};
