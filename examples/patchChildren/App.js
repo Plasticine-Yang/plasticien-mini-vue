@@ -6,6 +6,9 @@ import {
   ArrayToArrayCase4,
   ArrayToArrayCase5,
   ArrayToArrayCase6,
+  ArrayToArrayCase7,
+  ArrayToArrayCase8,
+  ArrayToArrayCase9,
 } from './ArrayToArray.js';
 import { ArrayToText } from './ArrayToText.js';
 import { TextToArray } from './TextToArray.js';
@@ -24,7 +27,10 @@ export const App = {
       // h(ArrayToArrayCase3),
       // h(ArrayToArrayCase4),
       // h(ArrayToArrayCase5),
-      h(ArrayToArrayCase6),
+      // h(ArrayToArrayCase6),
+      // h(ArrayToArrayCase7),
+      // h(ArrayToArrayCase8),
+      h(ArrayToArrayCase9),
     ]);
   },
 };

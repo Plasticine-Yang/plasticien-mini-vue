@@ -188,3 +188,115 @@ export const ArrayToArrayCase6 = {
       : h('div', {}, nextChildrenCase6);
   },
 };
+
+// ==================== Case7: 新的比旧的多 -- 中间对比进行删除和更新 ====================
+const prevChildrenCase7 = [
+  h('p', { key: 'A' }, 'A'),
+  h('p', { key: 'B' }, 'B'),
+  h('p', { key: 'C' }, 'C'),
+  h('p', { key: 'D' }, 'D'),
+  h('p', { key: 'E' }, 'E'),
+  h('p', { key: 'F' }, 'F'),
+  h('p', { key: 'G' }, 'G'),
+];
+
+const nextChildrenCase7 = [
+  h('p', { key: 'A' }, 'A'),
+  h('p', { key: 'B' }, 'B'),
+  h('p', { key: 'D' }, 'new D'),
+  h('p', { key: 'C' }, 'new C'),
+  h('p', { key: 'F' }, 'F'),
+  h('p', { key: 'G' }, 'G'),
+];
+
+export const ArrayToArrayCase7 = {
+  name: 'ArrayToArrayCase7',
+  setup() {
+    const toggleChildrenCase7 = ref(true);
+    window.toggleChildrenCase7 = toggleChildrenCase7;
+
+    return {
+      toggleChildrenCase7,
+    };
+  },
+  render() {
+    return this.toggleChildrenCase7
+      ? h('div', {}, prevChildrenCase7)
+      : h('div', {}, nextChildrenCase7);
+  },
+};
+
+// ==================== Case8: 新的比旧的多 -- 中间对比进行位置修改 ====================
+const prevChildrenCase8 = [
+  h('p', { key: 'A' }, 'A'),
+  h('p', { key: 'B' }, 'B'),
+  h('p', { key: 'C' }, 'C'),
+  h('p', { key: 'D' }, 'D'),
+  h('p', { key: 'E' }, 'E'),
+  h('p', { key: 'F' }, 'F'),
+  h('p', { key: 'G' }, 'G'),
+];
+
+const nextChildrenCase8 = [
+  h('p', { key: 'A' }, 'A'),
+  h('p', { key: 'B' }, 'B'),
+  h('p', { key: 'D' }, 'new D'),
+  h('p', { key: 'E' }, 'new E'),
+  h('p', { key: 'C' }, 'new C'),
+  h('p', { key: 'F' }, 'F'),
+  h('p', { key: 'G' }, 'G'),
+];
+
+export const ArrayToArrayCase8 = {
+  name: 'ArrayToArrayCase8',
+  setup() {
+    const toggleChildrenCase8 = ref(true);
+    window.toggleChildrenCase8 = toggleChildrenCase8;
+
+    return {
+      toggleChildrenCase8,
+    };
+  },
+  render() {
+    return this.toggleChildrenCase8
+      ? h('div', {}, prevChildrenCase8)
+      : h('div', {}, nextChildrenCase8);
+  },
+};
+
+// ==================== Case9: 新的比旧的多 -- 中间对比新增元素 ====================
+const prevChildrenCase9 = [
+  h('p', { key: 'A' }, 'A'),
+  h('p', { key: 'B' }, 'B'),
+  h('p', { key: 'C' }, 'C'),
+  h('p', { key: 'E' }, 'E'),
+  h('p', { key: 'F' }, 'F'),
+  h('p', { key: 'G' }, 'G'),
+];
+
+const nextChildrenCase9 = [
+  h('p', { key: 'A' }, 'A'),
+  h('p', { key: 'B' }, 'B'),
+  h('p', { key: 'E' }, 'new E'),
+  h('p', { key: 'C' }, 'new C'),
+  h('p', { key: 'D' }, 'D'),
+  h('p', { key: 'F' }, 'F'),
+  h('p', { key: 'G' }, 'G'),
+];
+
+export const ArrayToArrayCase9 = {
+  name: 'ArrayToArrayCase9',
+  setup() {
+    const toggleChildrenCase9 = ref(true);
+    window.toggleChildrenCase9 = toggleChildrenCase9;
+
+    return {
+      toggleChildrenCase9,
+    };
+  },
+  render() {
+    return this.toggleChildrenCase9
+      ? h('div', {}, prevChildrenCase9)
+      : h('div', {}, nextChildrenCase9);
+  },
+};
