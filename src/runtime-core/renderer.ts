@@ -2,6 +2,7 @@ import { effect } from '../reactivity';
 import { EMPTY_OBJ } from '../shared';
 import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
+import { shouldUpdateComponent } from './componentUpdateUtils';
 import { createAppAPI } from './createApp';
 import { Fragment, Text } from './vnode';
 
@@ -413,8 +414,16 @@ export function createRenderer(options) {
   function updateComponent(n1, n2) {
     const instance = (n2.component = n1.component);
 
-    instance.next = n2;
-    instance.update();
+    debugger;
+    if (shouldUpdateComponent(n1, n2)) {
+      instance.next = n2;
+      instance.update();
+    } else {
+      // 即使不需要更新 也要修改 n2.el = n1.el，因为它们仍然是同一个 vnode
+      n2.el = n1.el;
+      // 让 n2 成为下一次组件更新时的旧 vnode
+      instance.vnode = n2;
+    }
   }
 
   function mountComponent(
