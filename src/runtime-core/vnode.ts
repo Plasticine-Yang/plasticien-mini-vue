@@ -17,6 +17,7 @@ export function createVNode(type, props?, children?) {
     shapeFlag: getShapeFlag(type),
     el: null,
     key: props?.key,
+    component: null,
   };
 
   // 根据 children 的类型添加 vnode 的类型 -- 是 TEXT_CHILDREN 还是 ARRAY_CHILDREN

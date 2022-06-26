@@ -401,7 +401,20 @@ export function createRenderer(options) {
     parentComponent,
     anchor
   ) {
-    mountComponent(n2, container, parentComponent, anchor);
+    if (!n1) {
+      // 没有旧组件 -- 挂载组件
+      mountComponent(n2, container, parentComponent, anchor);
+    } else {
+      // 有旧组件 -- 更新组件
+      updateComponent(n1, n2);
+    }
+  }
+
+  function updateComponent(n1, n2) {
+    const instance = (n2.component = n1.component);
+
+    instance.next = n2;
+    instance.update();
   }
 
   function mountComponent(
@@ -411,7 +424,10 @@ export function createRenderer(options) {
     anchor
   ) {
     // 根据 vnode 创建组件实例
-    const instance = createComponentInstance(initialVNode, parentComponent);
+    const instance = (initialVNode.component = createComponentInstance(
+      initialVNode,
+      parentComponent
+    ));
 
     // setup 组件实例
     setupComponent(instance);
@@ -419,8 +435,9 @@ export function createRenderer(options) {
   }
 
   function setupRenderEffect(instance, container, anchor) {
-    effect(() => {
+    instance.update = effect(() => {
       if (!instance.isMounted) {
+        // 首次挂载组件
         const { proxy, vnode } = instance;
         const subTree = (instance.subTree = instance.render.call(proxy));
 
@@ -435,7 +452,15 @@ export function createRenderer(options) {
         vnode.el = subTree.el;
         instance.isMounted = true; // 初始化后及时将其标记为已挂载
       } else {
-        const { proxy, vnode } = instance;
+        // 组件更新
+        const { proxy, vnode, next } = instance;
+
+        if (next) {
+          // 让新 vnode.el 指向旧 vnode.el，因为它们仍然是同一个 vnode
+          next.el = vnode.el;
+          updateComponentPreRender(instance, next);
+        }
+
         const subTree = instance.render.call(proxy); // 新 vnode
         const prevSubTree = instance.subTree; // 旧 vnode
         instance.subTree = subTree; // 新的 vnode 要更新到组件实例的 subTree 属性 作为下一更新的旧 vnode
@@ -448,6 +473,12 @@ export function createRenderer(options) {
   return {
     createApp: createAppAPI(render),
   };
+}
+
+function updateComponentPreRender(instance, nextVNode) {
+  instance.vnode = nextVNode;
+  instance.next = null;
+  instance.props = nextVNode.props;
 }
 
 // https://en.wikipedia.org/wiki/Longest_increasing_subsequence
