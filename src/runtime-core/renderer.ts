@@ -4,6 +4,7 @@ import { ShapeFlags } from '../shared/shapeFlags';
 import { createComponentInstance, setupComponent } from './component';
 import { shouldUpdateComponent } from './componentUpdateUtils';
 import { createAppAPI } from './createApp';
+import { queueJob } from './scheduler';
 import { Fragment, Text } from './vnode';
 
 export function createRenderer(options) {
@@ -444,39 +445,47 @@ export function createRenderer(options) {
   }
 
   function setupRenderEffect(instance, container, anchor) {
-    instance.update = effect(() => {
-      if (!instance.isMounted) {
-        // 首次挂载组件
-        const { proxy, vnode } = instance;
-        const subTree = (instance.subTree = instance.render.call(proxy));
+    instance.update = effect(
+      () => {
+        if (!instance.isMounted) {
+          // 首次挂载组件
+          const { proxy, vnode } = instance;
+          const subTree = (instance.subTree = instance.render.call(proxy));
 
-        // subTree 可能是 Component 类型也可能是 Element 类型
-        // 调用 patch 去处理 subTree
-        // Element 类型则直接挂载
-        // 初次挂载 n1 不存在
-        patch(null, subTree, container, instance, anchor);
+          // subTree 可能是 Component 类型也可能是 Element 类型
+          // 调用 patch 去处理 subTree
+          // Element 类型则直接挂载
+          // 初次挂载 n1 不存在
+          patch(null, subTree, container, instance, anchor);
 
-        // subTree vnode 经过 patch 后就变成了真实的 DOM 此时 subTree.el 指向了根 DOM 元素
-        // 将 subTree.el 赋值给 vnode.el 就可以在组件实例上访问到挂载的根 DOM 元素对象了
-        vnode.el = subTree.el;
-        instance.isMounted = true; // 初始化后及时将其标记为已挂载
-      } else {
-        // 组件更新
-        const { proxy, vnode, next } = instance;
+          // subTree vnode 经过 patch 后就变成了真实的 DOM 此时 subTree.el 指向了根 DOM 元素
+          // 将 subTree.el 赋值给 vnode.el 就可以在组件实例上访问到挂载的根 DOM 元素对象了
+          vnode.el = subTree.el;
+          instance.isMounted = true; // 初始化后及时将其标记为已挂载
+        } else {
+          // 组件更新
+          const { proxy, vnode, next } = instance;
 
-        if (next) {
-          // 让新 vnode.el 指向旧 vnode.el，因为它们仍然是同一个 vnode
-          next.el = vnode.el;
-          updateComponentPreRender(instance, next);
+          if (next) {
+            // 让新 vnode.el 指向旧 vnode.el，因为它们仍然是同一个 vnode
+            next.el = vnode.el;
+            updateComponentPreRender(instance, next);
+          }
+
+          const subTree = instance.render.call(proxy); // 新 vnode
+          const prevSubTree = instance.subTree; // 旧 vnode
+          instance.subTree = subTree; // 新的 vnode 要更新到组件实例的 subTree 属性 作为下一更新的旧 vnode
+
+          patch(prevSubTree, subTree, container, instance, anchor);
         }
-
-        const subTree = instance.render.call(proxy); // 新 vnode
-        const prevSubTree = instance.subTree; // 旧 vnode
-        instance.subTree = subTree; // 新的 vnode 要更新到组件实例的 subTree 属性 作为下一更新的旧 vnode
-
-        patch(prevSubTree, subTree, container, instance, anchor);
+      },
+      {
+        scheduler() {
+          // 将渲染推迟到微任务队列中执行
+          queueJob(instance.update);
+        },
       }
-    });
+    );
   }
 
   return {
